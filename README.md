@@ -7,3 +7,6 @@ Created a word cloud based on 313 papers
 
 #21 November
 Added pubmed searches in R
+
+#22 November
+Attempted Pubmed searches by DOI. Many issues.

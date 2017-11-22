@@ -197,16 +197,35 @@ Titles<-str_replace(Titles, "\\[", "") ##YAYYYYY
 
 ####################################################################################
 #####Search for confirmed relevant papers within pubmed search results##############
+#################USING DOIS IS A BIG 'OL FAIL######################################
 ####################################################################################
 #First we need the list of relevant papers. It makes more sense to do this via DOIs 
 #than title matching, because of case sensitivity and similar complications
 
 #Load the DOI list for 40/41 of our papers
 DOIs <- read_csv("~/Documents/Levers4Health Keywords/DOI list 41 papers.csv")
-DOIs<-DOIs[1]
+DOIlist<-as.vector(DOIs$DOI)
+DOIlist[1] 
+#Ok, but I think we need the first element to be in parentheses to run a pubmed search?
+#DOIlist[1]<-paste(c("(", DOIlist[1], ")"), sep="", collapse="")
 
-##some floating code
-TitlesSorted<-sort(Titles)
-View(as.data.frame(TitlesSorted))
+#Convert list of DOIs into one string for searching
+DOIsearch<-paste(DOIlist, sep="", collapse=" OR ")
 
-grep(Data$TI[1], sort(Titles), ignore.case = T)
+searchfunction<-DOIsearch
+res <- EUtilsSummary(searchfunction, type="esearch", db="pubmed", datetype='pdat', mindate=1900, maxdate=2017, retmax=10000)
+QueryCount(res) #bad - should be 40. And more than 3 papers are in pubmed
+Titles<-ArticleTitle(EUtilsGet(res))
+
+##Agh just kidding. That isn't working, because pubmed doesn't have all of these
+##articles. Might try that in scopus later. For now, let's  go one at a time and pull
+#the titles in a way that makes it easy to see what we're missing
+DOIlist<-DOIlist[-c(5,9,13,14,15,19,20,24,33,35,39,40)]; length(DOIlist) #temporarily remove missing DOIs manually, automate later
+DOIdb<-as.data.frame(DOIlist); DOIdb$Title<-rep(NA, length(DOIlist))
+for (i in 1:length(DOIlist)) {
+  DOIdb[i,2]<-ArticleTitle(EUtilsGet(EUtilsSummary(DOIlist[i], type="esearch", db="pubmed", datetype='pdat', mindate=1900, maxdate=2017, retmax=10000)))[1]
+}
+DOIdb[12,] #This isn't the correct title for that DOI. Not sure why.
+
+#Ok, I'm giving up on the DOI approach for now. It  might make more sense to search
+#by title?
