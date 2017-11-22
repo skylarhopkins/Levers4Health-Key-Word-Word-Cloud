@@ -155,3 +155,58 @@ png("WordCloud313Papers.png", width = 7, height= 3, units = "in", res = 1200)
 par(mar = c(0, 0, 0, 0))
 wordcloud(words = Table$word, freq = Table$freq, min.freq = 1, max.words=numwords, random.order=FALSE, rot.per=0, fixed.asp=F, colors=brewer.pal(8, "Dark2"))
 dev.off()
+
+#################################################################################
+#################Are the 41 papers in 313 papers?##############################
+##################################################################################
+##Database of 41 medium and high relevalence papers
+RawBibData <- readFiles("~/Documents/Levers4Health Keywords.bib")
+#RawBibData <- readFiles("~/Documents/Levers4Health Keywords/12 Relevant Papers.bib")
+Data <- convert2df(RawBibData, dbsource = "isi", format = "bibtex")
+
+#Database w/ 313 papers
+RawBibData2 <- readFiles("~/Documents/Levers4Health Keywords/Levers4Health Keywords from 313 papers.bib")
+Data2 <- convert2df(RawBibData2, dbsource = "isi", format = "bibtex")
+Titles<-Data2$TI
+
+Data$TI %in% Titles
+sum(Data$TI %in% Titles) #4/41 papers
+
+#That's fine, but we can't repeat it for many searches, especially because
+#Web of Science only let's us download Bibtex files containing 500 papers
+#So we need a way to do the whole process inside of R
+
+#################################################################################
+################Let's try pubmed searches in R##############################
+##################################################################################
+library(RISmed)
+
+##I got 519 papers using this query online, and I got 519 out from R
+searchfunction<-'("human health"[Title/Abstract]) AND "environmental health"[Title/Abstract])' 
+res <- EUtilsSummary(searchfunction, type="esearch", db="pubmed", datetype='pdat', mindate=1900, maxdate=2017, retmax=10000)
+QueryCount(res)
+
+searchfunction<-'(((malaria*[Title/Abstract] OR schistosom*[Title/Abstract] OR diarrhea*[Title/Abstract] OR vector*[Title/Abstract] OR infectio*[Title/Abstract] OR transmission[Title/Abstract] OR zoono*[Title/Abstract] OR pathogen*[Title/Abstract] OR parasit*[Title/Abstract] OR DALY[Title/Abstract] OR bacteria*[Title/Abstract] OR “Planetary health”[Title/Abstract] OR Ecohealth[Title/Abstract] OR “One health”[Title/Abstract] OR arbovir*[Title/Abstract] OR viral[Title/Abstract] OR disease*[Title/Abstract])) AND (human*[Title/Abstract] OR people[Title/Abstract] OR childhood[Title/Abstract])) AND (“Environmental change”[Title/Abstract] OR “Landscape change”[Title/Abstract] OR “ecosystem function”[Title/Abstract] OR “forest conservation”[Title/Abstract] OR “Forest preservation”[Title/Abstract] OR “Wetland conservation”[Title/Abstract] OR “Wetland preservation”[Title/Abstract] OR “Species conservation”[Title/Abstract] OR “ecosystem service*”[Title/Abstract] OR “Disease ecology”[Title/Abstract] OR “Biodiversity conservation”[Title/Abstract] OR “Climate change”[Title/Abstract])'
+res <- EUtilsSummary(searchfunction, type="esearch", db="pubmed", datetype='pdat', mindate=1900, maxdate=2017, retmax=10000)
+QueryCount(res)
+Titles<-ArticleTitle(EUtilsGet(res))
+
+##Some of  the pulled titles are bracketed, but this will fix that 
+Titles<-str_replace(Titles, "]", "")
+Titles<-str_replace(Titles, "\\[", "") ##YAYYYYY
+
+####################################################################################
+#####Search for confirmed relevant papers within pubmed search results##############
+####################################################################################
+#First we need the list of relevant papers. It makes more sense to do this via DOIs 
+#than title matching, because of case sensitivity and similar complications
+
+#Load the DOI list for 40/41 of our papers
+DOIs <- read_csv("~/Documents/Levers4Health Keywords/DOI list 41 papers.csv")
+DOIs<-DOIs[1]
+
+##some floating code
+TitlesSorted<-sort(Titles)
+View(as.data.frame(TitlesSorted))
+
+grep(Data$TI[1], sort(Titles), ignore.case = T)
