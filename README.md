@@ -10,3 +10,6 @@ Added pubmed searches in R
 
 #22 November
 Attempted Pubmed searches by DOI. Many issues.
+
+#25 November
+Added some word associations

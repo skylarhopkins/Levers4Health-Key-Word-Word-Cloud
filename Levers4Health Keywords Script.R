@@ -81,6 +81,10 @@ par(mar = c(0, 0, 0, 0))
 wordcloud(words = Table$word, freq = Table$freq, min.freq = 1, max.words=numwords, random.order=FALSE, rot.per=0, fixed.asp=F, colors=brewer.pal(8, "Dark2"))
 dev.off()
 
+##Let's look at word associations
+findAssocs(dtm, terms="control", corlimit = 0.5)
+#human systems, human health, 
+
 #######################################################################
 #####313 papers from a trial WoK search w/ relevant keywords############
 #######################################################################
@@ -155,6 +159,9 @@ png("WordCloud313Papers.png", width = 7, height= 3, units = "in", res = 1200)
 par(mar = c(0, 0, 0, 0))
 wordcloud(words = Table$word, freq = Table$freq, min.freq = 1, max.words=numwords, random.order=FALSE, rot.per=0, fixed.asp=F, colors=brewer.pal(8, "Dark2"))
 dev.off()
+
+findAssocs(dtm, terms="environmental", corlimit = 0.3)
+#human systems, human health, environmental health, 
 
 #################################################################################
 #################Are the 41 papers in 313 papers?##############################
